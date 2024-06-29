@@ -2,24 +2,10 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#include "reader.hh"
+
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-
-const char *vertexShaderSource =
-    "#version 450 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\n\0";
-
-const char *fragmentShaderSource =
-    "#version 450 core\n"
-    "out vec4 FragmentColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragmentColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\n\0";
 
 // glfw: when window size changed this callback function executes // glfwSetFramebufferSizeCallback
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
@@ -37,6 +23,10 @@ void processInput(GLFWwindow *window)
 
 int main(void)
 {
+
+    char *vertexShaderSource = readShaderSource("shaders/shader.vert");
+    char *fragmentShaderSource = readShaderSource("shaders/shader.frag");
+
     GLFWwindow *window;
 
     /* Initialize the library */
