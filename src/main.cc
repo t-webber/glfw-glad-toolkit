@@ -2,11 +2,9 @@
 
 #include <iostream>
 
+#include "consts.hh"
 #include "reader.hh"
 #include "window.hh"
-
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
 
 // glfw: when window size changed this callback function executes //
 // glfwSetFramebufferSizeCallback
@@ -59,6 +57,7 @@ int main(void) {
     glGetShaderInfoLog(vertexShader, 512, NULL, errorInfo);
     std::cout << "ERROR::VERTEX::SHADER::COMPILATION_FAILED\n"
               << errorInfo << "\n";
+    return -1;
   }
 
   /* Fragment shader */
@@ -71,6 +70,7 @@ int main(void) {
     glGetShaderInfoLog(fragmentShader, 512, NULL, errorInfo);
     std::cout << "ERROR::FRAGMENT::SHADER::COMPILATION_FAILED\n"
               << errorInfo << "\n";
+    return -1;
   }
 
   /* Link shaders */
@@ -83,23 +83,21 @@ int main(void) {
   if (!success) {
     glGetProgramInfoLog(shaderProgram, 512, NULL, errorInfo);
     std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << errorInfo << "\n";
+    return -1;
   }
 
   /* Delete shaders after linking */
   glDeleteShader(vertexShader);
   glDeleteShader(fragmentShader);
 
-  /* Set vertex data and index buffer */
-  float vertices[] = {
-      0.5f,  0.5f,  0.0f,  // top right // 0
-      0.5f,  -0.5f, 0.0f,  // bottom right // 1
-      -0.5f, -0.5f, 0.0f,  // bottom left // 2
-      -0.5f, 0.5f,  0.0f   // top left  // 3
-  };
+  float currentVertices[BUFFER_SIZE];
+  for (int i = 0; i < BUFFER_SIZE; i++) {
+    currentVertices[i] = initialVertices[i];
+  }
 
   unsigned int indices[] = {
-      0, 1, 2,  // first triangle
-      2, 1, 0   // second triangle
+      7, 1, 0,  // first triangle
+      1, 0, 13  // second triangle
   };
 
   // set vertex buffer object anb vertex array object and element buffer objects
@@ -108,30 +106,43 @@ int main(void) {
   glGenBuffers(1, &VBO);
   glGenBuffers(1, &EBO);
 
-  // bind vertex array object
-  glBindVertexArray(VAO);
+  // unsigned movableIndices[] = {7, 8, 12, 13};
 
-  // bind vertex buffer object
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  PressState pressState = STATIC;
 
-  // bind element buffer objects
-  // EBO is stored in the VAO
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-               GL_STATIC_DRAW);
+  WLoopStatic staticData = {initialVertices, window};
 
-  // registered VBO as the vertex attributes
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(0);
+  WLoopState state = {currentVertices, &pressState};
 
-  // unbind the VAO
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
+  WLoopData data = {staticData, state};
 
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(window)) {
-    windowLoop(window, shaderProgram, VAO, vertices);
+    // set vertex buffer object anb vertex array object and element buffer
+
+    // bind vertex array object
+    glBindVertexArray(VAO);
+
+    // bind vertex buffer object
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(initialVertices),
+                 data.state.currentVertices, GL_STATIC_DRAW);
+
+    // bind element buffer objects
+    // EBO is stored in the VAO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+                 GL_STATIC_DRAW);
+
+    // registered VBO as the vertex attributes
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+                          (void *)0);
+    glEnableVertexAttribArray(0);
+
+    // unbind the VAO
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    windowLoop(shaderProgram, VAO, data);
   }
 
   /* De-allocate all resources */

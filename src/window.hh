@@ -1,8 +1,26 @@
-#pragma once
+
 #include <glad/glad.h>
+//
 #include <GLFW/glfw3.h>
 
 int init();
 
-void windowLoop(GLFWwindow *window, unsigned int shaderProgram,
-                unsigned int VAO, float vertices[12]);
+enum PressState { UP, DOWN, STATIC };
+
+typedef struct WLoopStatic {
+  const float *initialVertices;
+  GLFWwindow *window;
+  // unsigned *movableIndices;
+} WLoopStatic;
+
+typedef struct WLoopState {
+  float *currentVertices;
+  PressState *pressState;
+} WLoopState;
+
+typedef struct WLoopData {
+  WLoopStatic global;
+  WLoopState state;
+} WindowLoopData;
+
+void windowLoop(unsigned int shaderProgram, unsigned int VAO, WLoopData data);

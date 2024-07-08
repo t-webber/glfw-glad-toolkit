@@ -1,3 +1,4 @@
 #pragma once
+#include <string>
 
-char *readShaderSource(char *infilename);
+char *readShaderSource(std::string infilename);
